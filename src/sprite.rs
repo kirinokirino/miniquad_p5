@@ -49,12 +49,12 @@ impl Sprite {
         let mut visible_pixels: Vec<RGBA8> =
             Vec::with_capacity((visible_width * visible_height).try_into().unwrap());
 
-        for col in sprite_offset_y..visible_height + sprite_offset_y {
-            for row in sprite_offset_x..visible_width + sprite_offset_x {
-                visible_pixels.push(self.pixels[((row * self.size.width as i32) + col) as usize]);
+        for y in sprite_offset_y..visible_height + sprite_offset_y {
+            for x in sprite_offset_x..visible_width + sprite_offset_x {
+                visible_pixels.push(self.pixels[((y * self.size.width as i32) + x) as usize]);
             }
         }
-        //dbg!(&visible_width, &visible_height);
+
         ctx.draw_pixels(
             max(screen_origin.x as i32, self.origin.x as i32),
             max(screen_origin.y as i32, self.origin.y as i32),
