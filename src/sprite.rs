@@ -1,4 +1,4 @@
-use crate::common::{Vec2, Size, max, min};
+use crate::common::{max, min, Size, Vec2};
 use simple_pixels::{rgb::RGBA8, Context};
 
 pub struct Sprite {

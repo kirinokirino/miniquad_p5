@@ -1,13 +1,21 @@
+#![warn(clippy::nursery, clippy::pedantic)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::missing_const_for_fn,
+    clippy::cast_possible_wrap,
+    clippy::missing_panics_doc
+)]
 use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
 
-mod common;
 mod clock;
+mod common;
 mod sprite;
 
 use clock::Clock;
+use common::{Size, Vec2};
 use sprite::Sprite;
-use common::{Vec2, Size};
-
 
 fn main() {
     let config = Config {
@@ -34,7 +42,7 @@ impl Game {
             let red = if col % 5 == 0 { 255 } else { 0 };
             for row in 0..20 {
                 let green = if row % 5 == 0 { 255 } else { 0 };
-                pixels.push(RGBA8::new(red, green, 5 * row + col, 255))
+                pixels.push(RGBA8::new(red, green, 5 * row + col, 255));
             }
         }
         let sprite = Sprite::new(Vec2::new(10.0, 10.0), Size::new(20, 20), pixels);
@@ -60,5 +68,3 @@ impl State for Game {
         self.sprite.draw(ctx);
     }
 }
-
-
