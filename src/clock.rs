@@ -1,6 +1,8 @@
 use std::thread;
 use std::time::{Duration, Instant};
 
+/// Keeps a consistent framerate.
+
 pub struct Clock {
     creation_time: Instant,
     past: [Duration; 2],
@@ -29,10 +31,10 @@ impl Clock {
         self.past[1] = self.past[0];
         self.past[0] = time_delta;
         if self.cycles % 15 == 0 {
+            let fps = 1.0 / time_delta.as_secs_f32();
             println!(
-                "playtime: {:.2}, delta: {}ms",
-                self.lifetime.as_secs_f32(),
-                time_delta.as_millis()
+                "playtime: {:.2}, fps: {fps:.2}",
+                self.lifetime.as_secs_f32()
             );
         }
     }

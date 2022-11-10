@@ -1,11 +1,12 @@
-use std::env;
-use std::fs::{self, File};
-use std::io::{self, Write};
+use std::fs;
+use std::io;
 use std::path::Path;
 
-use simple_pixels::rgb::{RGB8, RGBA8};
+use simple_pixels::rgb::RGBA8;
 
 use crate::{Size, Sprite, Vec2};
+
+/// Basic image saving/loading with ppt format.
 
 pub fn save_sprite(path: &str, sprite: &Sprite) -> Result<(), io::Error> {
     let path = Path::new(path);
@@ -15,13 +16,13 @@ pub fn save_sprite(path: &str, sprite: &Sprite) -> Result<(), io::Error> {
     for pixel in &sprite.pixels {
         data.push_str(&format!("{} {} {} ", pixel.r, pixel.g, pixel.b));
     }
-    let ppt_header = format!("P3 {} {} 255\n", width, height);
+    let ppt_header = format!("P3 {width} {height} 255\n");
     fs::write(path, [ppt_header, data].concat())
 }
 
 pub fn load_sprite(path: &str) -> Result<Sprite, io::Error> {
     let path = Path::new(path);
-    let mut data = fs::read_to_string(path)?;
+    let data = fs::read_to_string(path)?;
     if let Some((header, data)) = data.split_once('\n') {
         let data: Vec<&str> = data.split_ascii_whitespace().collect();
         let mut split = header.split_whitespace();
