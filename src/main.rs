@@ -7,7 +7,7 @@
     clippy::cast_possible_wrap,
     clippy::missing_panics_doc
 )]
-use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
+use simple_pixels::{start, Config, Context, KeyCode, State};
 
 mod cli;
 mod clock;
@@ -16,20 +16,13 @@ mod ppt;
 mod settings;
 mod sprite;
 
+use cli::Arguments;
 use clock::Clock;
 use common::{Size, Vec2};
+use ppt::load_sprite;
 use sprite::Sprite;
 
-use ppt::{load_sprite, save_sprite};
-
 fn main() {
-    let mut pixels: Vec<RGBA8> = vec![RGBA8::default(); 32 * 32];
-    for i in 0..32 {
-        pixels[i + i * 32] = RGBA8::new(i as u8 * 8, i as u8 * 8, i as u8 * 8, i as u8 * 8);
-    }
-    let sprite = Sprite::new(Vec2::new(0.0, 0.0), Size::new(32, 32), pixels);
-    save_sprite("test.ppt", &sprite);
-
     let config = Config {
         window_title: "game".to_string(),
         window_width: 200,
