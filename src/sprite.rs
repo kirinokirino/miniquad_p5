@@ -3,8 +3,8 @@ use simple_pixels::{rgb::RGBA8, Context};
 
 pub struct Sprite {
     pub origin: Vec2,
-    size: Size,
-    pixels: Vec<RGBA8>,
+    pub size: Size,
+    pub pixels: Vec<RGBA8>,
 }
 
 impl Sprite {

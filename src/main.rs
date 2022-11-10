@@ -9,15 +9,27 @@
 )]
 use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
 
+mod cli;
 mod clock;
 mod common;
+mod ppt;
+mod settings;
 mod sprite;
 
 use clock::Clock;
 use common::{Size, Vec2};
 use sprite::Sprite;
 
+use ppt::{load_sprite, save_sprite};
+
 fn main() {
+    let mut pixels: Vec<RGBA8> = vec![RGBA8::default(); 32 * 32];
+    for i in 0..32 {
+        pixels[i + i * 32] = RGBA8::new(i as u8 * 8, i as u8 * 8, i as u8 * 8, i as u8 * 8);
+    }
+    let sprite = Sprite::new(Vec2::new(0.0, 0.0), Size::new(32, 32), pixels);
+    save_sprite("test.ppt", &sprite);
+
     let config = Config {
         window_title: "game".to_string(),
         window_width: 200,
@@ -37,15 +49,7 @@ struct Game {
 
 impl Game {
     pub fn new() -> Self {
-        let mut pixels = Vec::with_capacity(20 * 20);
-        for col in 0..20 {
-            let red = if col % 5 == 0 { 255 } else { 0 };
-            for row in 0..20 {
-                let green = if row % 5 == 0 { 255 } else { 0 };
-                pixels.push(RGBA8::new(red, green, 5 * row + col, 255));
-            }
-        }
-        let sprite = Sprite::new(Vec2::new(10.0, 10.0), Size::new(20, 20), pixels);
+        let sprite = load_sprite("test.ppt").unwrap();
         let clock = Clock::new();
         Self { clock, sprite }
     }
