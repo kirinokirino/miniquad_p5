@@ -8,6 +8,32 @@ impl Vec2 {
     pub fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
+
+    pub fn round(&self) -> Self {
+        Vec2::new(self.x.round(), self.y.round())
+    }
+}
+
+pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
+    let dx = to.x - from.x;
+    let dy = to.y - from.y;
+    return dx.abs().max(dy.abs());
+}
+
+pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
+    let diagonal_distance = diagonal_distance(from, to);
+    let mut points: Vec<Vec2> = Vec::with_capacity(diagonal_distance as usize);
+    for i in 0..diagonal_distance as usize {
+        let progress = if i == 0 {
+            0.0
+        } else {
+             i as f32 / diagonal_distance
+        };
+        let lerp_x = lerp(from.x, to.x, progress);
+        let lerp_y = lerp(from.y, to.y, progress);
+        points.push(Vec2::new(lerp_x, lerp_y).round());
+    }
+    points
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -22,8 +48,12 @@ impl Size {
     }
 
     pub fn area(&self) -> u32 {
-    	self.width * self.height
+        self.width * self.height
     }
+}
+
+pub fn lerp(start: f32, end: f32, t: f32) -> f32 {
+    return start * (1.0 - t) + end * t;
 }
 
 pub fn min(of: i32, or: i32) -> i32 {

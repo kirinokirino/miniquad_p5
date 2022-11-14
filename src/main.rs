@@ -7,18 +7,17 @@
     clippy::cast_possible_wrap,
     clippy::missing_panics_doc
 )]
-use simple_pixels::{start, Config, Context, KeyCode, State};
+use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
 
 mod cli;
 mod clock;
 mod common;
 mod ppt;
-mod settings;
 mod sprite;
 
 use cli::Arguments;
 use clock::Clock;
-use common::{Size, Vec2};
+use common::{constrain, line, Size, Vec2};
 use ppt::load_sprite;
 use sprite::Sprite;
 
@@ -37,14 +36,16 @@ fn main() {
 
 struct Game {
     clock: Clock,
-    sprite: Sprite,
+    mouse_pos: Vec2,
 }
 
 impl Game {
     pub fn new() -> Self {
-        let sprite = load_sprite("test.ppt").unwrap();
         let clock = Clock::new();
-        Self { clock, sprite }
+        Self {
+            clock,
+            mouse_pos: Vec2::new(0.0, 0.0),
+        }
     }
 }
 
@@ -55,13 +56,23 @@ impl State for Game {
         }
 
         let mouse = ctx.get_mouse_pos();
-        self.sprite.origin = Vec2::new(mouse.0, mouse.1);
+        self.mouse_pos = Vec2::new(
+            constrain(mouse.0, 0.0, 199.0),
+            constrain(mouse.1, 0.0, 199.0),
+        );
 
         self.clock.sleep();
     }
 
     fn draw(&mut self, ctx: &mut Context) {
         ctx.clear();
-        self.sprite.draw(ctx);
+        let line = line(Vec2::new(0.0, 0.0), self.mouse_pos);
+        for point in line {
+            ctx.draw_pixel(
+                point.x as i32,
+                point.y as i32,
+                RGBA8::new(150, 100, 100, 255),
+            );
+        }
     }
 }
