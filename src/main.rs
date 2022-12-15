@@ -90,11 +90,26 @@ impl State for Game {
             }
             None
         }) {
+            let (x, y) = (point.x as i32, point.y as i32);
             ctx.draw_pixel(
-                point.x as i32,
-                point.y as i32,
-                RGBA8::new(150, 100, 100, 255),
+                x ,
+                y ,
+                dither(x, y, RGBA8::new(150, 100, 100, 255), RGBA8::new(80, 70, 90, 255), 0.5)
             );
         }
+    }
+}
+
+const DISPERSION_MATRIX_SIZE: u8 = 9;
+const DISPERSED: [u8; DISPERSION_MATRIX_SIZE as usize] = [1, 7, 4, 5, 8, 3, 6, 2, 9];
+
+pub fn dither(x: i32, y: i32, main_color: RGBA8, alternative_color: RGBA8, mix: f32) -> RGBA8 {
+    let idx_in_dispersion_matrix = ((x - y * 3).abs() % DISPERSION_MATRIX_SIZE as i32) as usize;
+    let color_threshold = DISPERSED[idx_in_dispersion_matrix] as f32 / DISPERSION_MATRIX_SIZE as f32;
+
+    if mix < color_threshold {
+        main_color
+    } else {
+        alternative_color
     }
 }
