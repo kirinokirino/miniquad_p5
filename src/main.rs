@@ -39,16 +39,25 @@ struct Game {
     mouse_pos: Vec2,
     width: u32,
     height: u32,
+    cursor: Vec<Vec2>,
 }
 
 impl Game {
     pub fn new() -> Self {
         let clock = Clock::new();
+        let (width, height) = (200, 200);
+        let mouse_pos = Vec2::new(0.0, 0.0);
+        let mut circles: Vec<Vec2> = Vec::new();
+        for radius in 1..5 {
+            let circle = circle(mouse_pos, radius as f32 * 5.0);
+            circles.extend(circle.iter())
+        }
         Self {
             clock,
-            mouse_pos: Vec2::new(0.0, 0.0),
-            width: 200,
-            height: 200,
+            mouse_pos,
+            width,
+            height,
+            cursor: circles,
         }
     }
 }
@@ -70,14 +79,17 @@ impl State for Game {
 
     fn draw(&mut self, ctx: &mut Context) {
         ctx.clear();
-        let circle = circle(self.mouse_pos, 10.0);
-        let line = circle.iter().filter(|point| {
-            point.x > 0.0
+        for point in self.cursor.iter().filter_map(|point| {
+            let point = *point + self.mouse_pos;
+            if point.x > 0.0
                 && point.x < self.width as f32
                 && point.y > 0.0
                 && point.y < self.height as f32
-        });
-        for point in line {
+            {
+                return Some(point);
+            }
+            None
+        }) {
             ctx.draw_pixel(
                 point.x as i32,
                 point.y as i32,

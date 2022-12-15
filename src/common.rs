@@ -34,6 +34,17 @@ impl Mul<f32> for Vec2 {
     }
 }
 
+impl Add<&Vec2> for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, rhs: &Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
 impl Add<Vec2> for Vec2 {
     type Output = Vec2;
 
