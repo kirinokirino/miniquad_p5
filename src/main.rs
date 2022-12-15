@@ -17,7 +17,7 @@ mod sprite;
 
 use cli::Arguments;
 use clock::Clock;
-use common::{circle, constrain, line, Size, Vec2};
+use common::{circle, constrain, rect, Size, Vec2};
 use ppt::load_sprite;
 use sprite::Sprite;
 
@@ -47,17 +47,18 @@ impl Game {
         let clock = Clock::new();
         let (width, height) = (200, 200);
         let mouse_pos = Vec2::new(0.0, 0.0);
-        let mut circles: Vec<Vec2> = Vec::new();
+        let mut cursor: Vec<Vec2> = Vec::new();
         for radius in 1..5 {
             let circle = circle(mouse_pos, radius as f32 * 5.0);
-            circles.extend(circle.iter())
+            cursor.extend(circle.iter())
         }
+        cursor.extend(rect(mouse_pos, mouse_pos + Vec2::new(25.0, 25.0)));
         Self {
             clock,
             mouse_pos,
             width,
             height,
-            cursor: circles,
+            cursor,
         }
     }
 }

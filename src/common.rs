@@ -87,6 +87,17 @@ pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
     points
 }
 
+pub fn rect(from: Vec2, to: Vec2) -> Vec<Vec2> {
+    let (start_x, start_y, end_x, end_y) = (from.x.round() as i32, from.y.round() as i32, to.x.round() as i32, to.y.round() as i32);
+    let mut points = Vec::with_capacity(((end_x - start_x) * (end_y - start_y)) as usize);
+    for y in start_y..=end_y {
+        for x in start_x..=end_x {
+            points.push(Vec2::new(x as f32, y as f32));
+        }
+    }
+    points
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct Size {
     pub width: u32,
