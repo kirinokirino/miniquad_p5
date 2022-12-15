@@ -1,3 +1,5 @@
+use std::ops::{Add, Mul};
+
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2 {
     pub x: f32,
@@ -12,12 +14,50 @@ impl Vec2 {
     pub fn round(&self) -> Self {
         Vec2::new(self.x.round(), self.y.round())
     }
+
+    pub fn from_angle(angle: f32) -> Self {
+        Self {
+            x: angle.sin(),
+            y: angle.cos(),
+        }
+    }
+}
+
+impl Mul<f32> for Vec2 {
+    type Output = Vec2;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+
+impl Add<Vec2> for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, rhs: Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
 }
 
 pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
     let dx = to.x - from.x;
     let dy = to.y - from.y;
     return dx.abs().max(dy.abs());
+}
+
+pub fn circle(origin: Vec2, radius: f32) -> Vec<Vec2> {
+    let surface = (radius * std::f32::consts::TAU).ceil();
+    let mut points: Vec<Vec2> = Vec::with_capacity(surface as usize);
+    for i in 0..surface as usize {
+        points.push(origin + Vec2::from_angle(std::f32::consts::TAU / surface * i as f32) * radius);
+    }
+    points
 }
 
 pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
@@ -27,7 +67,7 @@ pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
         let progress = if i == 0 {
             0.0
         } else {
-             i as f32 / diagonal_distance
+            i as f32 / diagonal_distance
         };
         let lerp_x = lerp(from.x, to.x, progress);
         let lerp_y = lerp(from.y, to.y, progress);

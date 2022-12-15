@@ -17,7 +17,7 @@ mod sprite;
 
 use cli::Arguments;
 use clock::Clock;
-use common::{constrain, line, Size, Vec2};
+use common::{circle, constrain, line, Size, Vec2};
 use ppt::load_sprite;
 use sprite::Sprite;
 
@@ -37,6 +37,8 @@ fn main() {
 struct Game {
     clock: Clock,
     mouse_pos: Vec2,
+    width: u32,
+    height: u32,
 }
 
 impl Game {
@@ -45,6 +47,8 @@ impl Game {
         Self {
             clock,
             mouse_pos: Vec2::new(0.0, 0.0),
+            width: 200,
+            height: 200,
         }
     }
 }
@@ -57,8 +61,8 @@ impl State for Game {
 
         let mouse = ctx.get_mouse_pos();
         self.mouse_pos = Vec2::new(
-            constrain(mouse.0, 0.0, 199.0),
-            constrain(mouse.1, 0.0, 199.0),
+            constrain(mouse.0, 0.0, self.width as f32),
+            constrain(mouse.1, 0.0, self.height as f32),
         );
 
         self.clock.sleep();
@@ -66,7 +70,13 @@ impl State for Game {
 
     fn draw(&mut self, ctx: &mut Context) {
         ctx.clear();
-        let line = line(Vec2::new(0.0, 0.0), self.mouse_pos);
+        let circle = circle(self.mouse_pos, 10.0);
+        let line = circle.iter().filter(|point| {
+            point.x > 0.0
+                && point.x < self.width as f32
+                && point.y > 0.0
+                && point.y < self.height as f32
+        });
         for point in line {
             ctx.draw_pixel(
                 point.x as i32,
