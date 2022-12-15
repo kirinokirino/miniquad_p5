@@ -95,7 +95,7 @@ impl State for Game {
             ctx.draw_pixel(
                 x ,
                 y ,
-                dither(x, y, RGBA8::new(150, 100, 100, 255), RGBA8::new(80, 70, 90, 255), 0.5)
+                dither(x, y, RGBA8::new(150, 100, 100, 255), RGBA8::new(80, 70, 90, 255), (self.clock.now() / 5.0).sin())
             );
         }
     }

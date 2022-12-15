@@ -52,4 +52,8 @@ impl Clock {
         };
         thread::sleep(frame_slowdown);
     }
+
+    pub fn now(&self) -> f32 {
+        self.lifetime.as_secs_f32()
+    }
 }
