@@ -22,6 +22,10 @@ impl Vec2 {
             y: angle.cos(),
         }
     }
+
+    pub fn inside(&self, width: u32, height: u32) -> bool {
+        self.y > 0.0 && self.x > 0.0 && (self.x as u32) < width && (self.y as u32) < height
+    }
 }
 
 impl Mul<f32> for Vec2 {
@@ -84,6 +88,44 @@ pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
         let lerp_x = lerp(from.x, to.x, progress);
         let lerp_y = lerp(from.y, to.y, progress);
         points.push(Vec2::new(lerp_x, lerp_y).round());
+    }
+    points
+}
+
+pub fn sort_y(mut p0: Vec2, mut p1: Vec2, mut p2: Vec2) -> (Vec2, Vec2, Vec2) {
+    if p1.y < p0.y {
+        std::mem::swap(&mut p1, &mut p0);
+    }
+    if p2.y < p0.y {
+        std::mem::swap(&mut p2, &mut p0);
+    }
+    if p2.y < p1.y {
+        std::mem::swap(&mut p2, &mut p1);
+    }
+    (p0, p1, p2)
+}
+
+pub fn triangle(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
+    let mut points = Vec::new();
+    let (p0, p1, p2) = sort_y(p0, p1, p2);
+    let long_side = line(p0, p2);
+    let mut other = line(p0, p1);
+    other.extend(line(p1, p2));
+    let mut other = other.iter().peekable();
+    let mut current_y = 0.0;
+    for (point) in long_side.iter() {
+        current_y = point.y.round();
+        while (other
+            .peek()
+            .map_or(false, |point| point.y.round() == current_y))
+        {
+            other.next();
+        }
+        let other_point = other.next();
+        match other_point {
+            Some(other) => points.extend(line(*point, *other)),
+            None => break,
+        }
     }
     points
 }

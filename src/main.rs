@@ -17,7 +17,7 @@ mod sprite;
 
 use cli::Arguments;
 use clock::Clock;
-use common::{circle, constrain, rect, Size, Vec2};
+use common::{circle, constrain, triangle, Size, Vec2};
 use ppt::load_sprite;
 use sprite::Sprite;
 
@@ -40,6 +40,7 @@ struct Game {
     width: u32,
     height: u32,
     sprites: Vec<Sprite>,
+    stuff: Vec<Vec2>,
 }
 
 impl Game {
@@ -52,12 +53,18 @@ impl Game {
             circle(Vec2::new(0.0, 0.0), 15.0), //mouse_pos + Vec2::new(25.0, 25.0)),
             RGBA8::new(20, 200, 100, 255),
         ));
+        let stuff = triangle(
+            Vec2::new(15.0, 20.0),
+            Vec2::new(100.0, 50.0),
+            Vec2::new(-20.0, 120.0),
+        );
         Self {
             clock,
             mouse_pos,
             width,
             height,
             sprites,
+            stuff,
         }
     }
 }
@@ -83,6 +90,13 @@ impl State for Game {
         ctx.clear();
         for sprite in &self.sprites {
             sprite.draw(ctx);
+        }
+        for point in self
+            .stuff
+            .iter()
+            .filter(|p| p.inside(self.width, self.height))
+        {
+            ctx.draw_pixel(point.x as i32, point.y as i32, RGBA8::new(255, 0, 0, 255));
         }
         // for point in self.cursor.iter().filter_map(|point| {
         //     let point = *point + self.mouse_pos;
