@@ -23,8 +23,8 @@ impl Vec2 {
         }
     }
 
-    pub fn inside(self, width: u32, height: u32) -> bool {
-        self.y > 0.0 && self.x > 0.0 && (self.x as u32) < width && (self.y as u32) < height
+    pub fn inside(self, width: i32, height: i32) -> bool {
+        self.y > 0.0 && self.x > 0.0 && (self.x as i32) < width && (self.y as i32) < height
     }
 }
 
@@ -74,6 +74,13 @@ pub fn circle(origin: Vec2, radius: f32) -> Vec<Vec2> {
         points.push(origin + Vec2::from_angle(std::f32::consts::TAU / surface * i as f32) * radius);
     }
     points
+}
+
+pub fn empty_triangle(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
+    let mut triangle = line(p0, p1);
+    triangle.extend(line(p1, p2));
+    triangle.extend(line(p0, p2));
+    triangle
 }
 
 pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
@@ -138,27 +145,37 @@ pub fn triangle(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
         }
         let other_point = other.next();
         match other_point {
-            Some(other) => points.extend(line(*point, *other)),
+            Some(other) => points.extend(dotted_line(*point, *other, std::f32::consts::PI)),
             None => break,
         }
     }
     points
 }
 
-pub fn rect(from: Vec2, to: Vec2) -> Vec<Vec2> {
-    let (start_x, start_y, end_x, end_y) = (
-        from.x.round() as i32,
-        from.y.round() as i32,
-        to.x.round() as i32,
-        to.y.round() as i32,
-    );
-    let mut points = Vec::with_capacity(((end_x - start_x) * (end_y - start_y)) as usize);
-    for y in start_y..=end_y {
-        for x in start_x..=end_x {
-            points.push(Vec2::new(x as f32, y as f32));
-        }
-    }
-    points
+pub fn triangle2(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
+    let rect_points = Rect::bounding(&[p0, p1, p2])
+        .points()
+        .into_iter()
+        .filter(|point| point_is_in_triangle(*point, p0, p1, p2))
+        .collect();
+    rect_points
+}
+
+/*
+    Determine if point is within triangle formed by points p1, p2, p3.
+    If so, the point will be on the same side of each of the half planes
+    defined by vectors p1p2, p2p3, and p3p1.
+*/
+pub fn point_is_in_triangle(point: Vec2, p0: Vec2, p1: Vec2, p2: Vec2) -> bool {
+    let side1 = side_of_the_plane(point, p0, p1);
+    let side2 = side_of_the_plane(point, p1, p2);
+    let side3 = side_of_the_plane(point, p2, p0);
+    side1 && side2 && side3 || !side1 && !side2 && !side3
+}
+
+fn side_of_the_plane(point: Vec2, plane1: Vec2, plane2: Vec2) -> bool {
+    ((point.x - plane2.x) * (plane1.y - plane2.y) - (plane1.x - plane2.x) * (point.y - plane2.y))
+        .is_sign_positive()
 }
 
 struct Bounds {
@@ -230,6 +247,22 @@ impl Rect {
             (bottom.round() - top.round()) as u32,
         );
         Self { origin, size }
+    }
+
+    pub fn points(&self) -> Vec<Vec2> {
+        let (start_x, start_y, end_x, end_y) = (
+            self.origin.x.round() as i32,
+            self.origin.y.round() as i32,
+            self.origin.x.round() as i32 + self.size.width as i32,
+            self.origin.y.round() as i32 + self.size.height as i32,
+        );
+        let mut points = Vec::with_capacity(((end_x - start_x) * (end_y - start_y)) as usize);
+        for y in start_y..=end_y {
+            for x in start_x..=end_x {
+                points.push(Vec2::new(x as f32, y as f32));
+            }
+        }
+        points
     }
 }
 

@@ -15,22 +15,24 @@ mod common;
 mod ppt;
 mod sprite;
 
-
 use clock::Clock;
-use common::{circle, constrain, triangle, Size, Vec2};
+use common::{
+    circle, constrain, empty_triangle, point_is_in_triangle, triangle, triangle2, Size, Vec2,
+};
 
 use sprite::Sprite;
 
 fn main() {
+    let (width, height) = (400, 400);
     let config = Config {
         window_title: "game".to_string(),
-        window_width: 200,
-        window_height: 200,
+        window_width: width,
+        window_height: height,
         fullscreen: false,
         icon: None,
     };
 
-    let game = Game::new();
+    let game = Game::new(width, height);
     start(config, game);
 }
 
@@ -44,9 +46,8 @@ struct Game {
 }
 
 impl Game {
-    pub fn new() -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         let clock = Clock::new();
-        let (width, height) = (200, 200);
         let mouse_pos = Vec2::new(0.0, 0.0);
         let mut sprites: Vec<Sprite> = Vec::new();
         sprites.push(Sprite::from_vec2(
@@ -54,10 +55,10 @@ impl Game {
             RGBA8::new(20, 200, 100, 255),
         ));
 
-        let stuff = triangle(
-            Vec2::new(15.0, 20.0),
-            Vec2::new(100.0, 50.0),
-            Vec2::new(-20.0, 120.0),
+        let mut stuff = triangle(
+            Vec2::from_angle(std::f32::consts::TAU / 3.0) * 100.0,
+            Vec2::from_angle((std::f32::consts::TAU / 3.0) * 2.0) * 100.0,
+            Vec2::from_angle((std::f32::consts::TAU / 3.0) * 3.0) * 100.0,
         );
         Self {
             clock,
@@ -84,6 +85,18 @@ impl State for Game {
 
         self.sprites[0].origin = self.mouse_pos;
 
+        let (p0, p1, p2) = (
+            Vec2::new(200.0, 10.0),
+            Vec2::new(20.0, 200.0),
+            Vec2::new(350.0, 250.0),
+        );
+
+        self.stuff = triangle2(p0, p1, p2);
+        self.stuff
+            .extend(bleh(Vec2::new(250.0, 200.0), self.clock.now() * 3.0, 4.0));
+        self.stuff
+            .extend(bleh(Vec2::new(200.0, 150.0), self.clock.now() * 0.2, 9.0));
+
         self.clock.sleep();
     }
 
@@ -95,41 +108,35 @@ impl State for Game {
         for point in self
             .stuff
             .iter()
-            .filter(|p| p.inside(self.width, self.height))
+            .filter(|p| p.inside(self.width as i32, self.height as i32))
         {
-            ctx.draw_pixel(point.x as i32, point.y as i32, RGBA8::new(255, 0, 0, 255));
+            ctx.draw_pixel(
+                point.x as i32,
+                point.y as i32,
+                dither(
+                    point.x as i32,
+                    point.y as i32,
+                    RGBA8::new(0, 100, 255, 50),
+                    RGBA8::new(0x6a, 0xc0, 0xbd, 50),
+                    (self.clock.now() / 10.0).sin(),
+                ),
+            );
         }
-        // for point in self.cursor.iter().filter_map(|point| {
-        //     let point = *point + self.mouse_pos;
-        //     if point.x > 0.0
-        //         && point.x < self.width as f32
-        //         && point.y > 0.0
-        //         && point.y < self.height as f32
-        //     {
-        //         return Some(point);
-        //     }
-        //     None
-        // }) {
-        //     let (x, y) = (point.x as i32, point.y as i32);
-        //     ctx.draw_pixel(
-        //         x,
-        //         y,
-        //         dither(
-        //             x,
-        //             y,
-        //             RGBA8::new(150, 100, 100, 255),
-        //             RGBA8::new(80, 70, 90, 255),
-        //             (self.clock.now() / 5.0).sin(),
-        //         ),
-        //     );
-        // }
     }
 }
 
+pub fn bleh(p: Vec2, t: f32, b: f32) -> Vec<Vec2> {
+    triangle(
+        p + Vec2::from_angle((t / 3.0) % b / 3.0) * 100.0,
+        p + Vec2::from_angle(((t / 2.0 + 1.5) % b / 3.0) * 2.0) * 100.0,
+        p + Vec2::from_angle(((t / 2.5 + 1.0) % b / 3.0) * 3.0) * 100.0,
+    )
+}
 const DISPERSION_MATRIX_SIZE: u8 = 9;
 const DISPERSED: [u8; DISPERSION_MATRIX_SIZE as usize] = [1, 7, 4, 5, 8, 3, 6, 2, 9];
 
-#[must_use] pub fn dither(x: i32, y: i32, main_color: RGBA8, alternative_color: RGBA8, mix: f32) -> RGBA8 {
+#[must_use]
+pub fn dither(x: i32, y: i32, main_color: RGBA8, alternative_color: RGBA8, mix: f32) -> RGBA8 {
     let idx_in_dispersion_matrix = ((x - y * 3).abs() % i32::from(DISPERSION_MATRIX_SIZE)) as usize;
     let color_threshold =
         f32::from(DISPERSED[idx_in_dispersion_matrix]) / f32::from(DISPERSION_MATRIX_SIZE);
