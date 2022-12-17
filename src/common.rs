@@ -1,3 +1,4 @@
+use std::default::Default;
 use std::ops::{Add, Mul};
 
 #[derive(Debug, Copy, Clone)]
@@ -88,7 +89,12 @@ pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
 }
 
 pub fn rect(from: Vec2, to: Vec2) -> Vec<Vec2> {
-    let (start_x, start_y, end_x, end_y) = (from.x.round() as i32, from.y.round() as i32, to.x.round() as i32, to.y.round() as i32);
+    let (start_x, start_y, end_x, end_y) = (
+        from.x.round() as i32,
+        from.y.round() as i32,
+        to.x.round() as i32,
+        to.y.round() as i32,
+    );
     let mut points = Vec::with_capacity(((end_x - start_x) * (end_y - start_y)) as usize);
     for y in start_y..=end_y {
         for x in start_x..=end_x {
@@ -96,6 +102,78 @@ pub fn rect(from: Vec2, to: Vec2) -> Vec<Vec2> {
         }
     }
     points
+}
+
+struct Bounds {
+    top: f32,
+    bottom: f32,
+    left: f32,
+    right: f32,
+}
+
+impl Bounds {
+    pub fn wrap(points: &[Vec2]) -> Self {
+        points.iter().fold(Bounds::default(), |mut bounds, point| {
+            bounds.wrap_point(*point);
+            bounds
+        })
+    }
+
+    pub fn wrap_point(&mut self, point: Vec2) {
+        let Vec2 { x, y } = point;
+        if x > self.right {
+            self.right = x
+        } else if x < self.left {
+            self.left = x
+        }
+        if y < self.top {
+            self.top = y
+        } else if y > self.bottom {
+            self.bottom = y
+        }
+    }
+}
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
+            top: f32::MAX,
+            bottom: f32::MIN,
+            right: f32::MIN,
+            left: f32::MAX,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Rect {
+    pub origin: Vec2,
+    pub size: Size,
+}
+
+impl Rect {
+    pub fn new(pos: Vec2, size: Size) -> Self {
+        Self {
+            origin: pos.round(),
+            size,
+        }
+    }
+
+    pub fn bounding(points: &[Vec2]) -> Self {
+        let Bounds {
+            top,
+            bottom,
+            left,
+            right,
+        } = Bounds::wrap(points);
+
+        let origin = Vec2::new(left, top).round();
+        let size = Size::new(
+            (right.round() - left.round()) as u32,
+            (bottom.round() - top.round()) as u32,
+        );
+        Self { origin, size }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -1,4 +1,4 @@
-use crate::common::{max, min, Size, Vec2};
+use crate::common::{max, min, Rect, Size, Vec2};
 use simple_pixels::{rgb::RGBA8, Context};
 
 pub struct Sprite {
@@ -11,6 +11,24 @@ impl Sprite {
     pub fn new(pos: Vec2, size: Size, pixels: Vec<RGBA8>) -> Self {
         Self {
             origin: pos,
+            size,
+            pixels,
+        }
+    }
+    pub fn from_vec2(points: Vec<Vec2>, color: RGBA8) -> Self {
+        let Rect { origin, size } = Rect::bounding(&points);
+        let Size { width, height } = size;
+        let mut pixels = vec![RGBA8::new(0, 0, 0, 0); (width * height) as usize];
+        let (offset_x, offset_y) = (-origin.x.round(), -origin.y.round());
+        for point in points {
+            let Vec2 { x, y } = point.round();
+            let idx = (y + offset_y) as usize * width as usize + (x + offset_x) as usize;
+            if let Some(pixel) = pixels.get_mut(idx) {
+                *pixel = color;
+            }
+        }
+        Self {
+            origin,
             size,
             pixels,
         }
