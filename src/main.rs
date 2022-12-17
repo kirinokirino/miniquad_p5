@@ -15,10 +15,10 @@ mod common;
 mod ppt;
 mod sprite;
 
-use cli::Arguments;
+
 use clock::Clock;
 use common::{circle, constrain, triangle, Size, Vec2};
-use ppt::load_sprite;
+
 use sprite::Sprite;
 
 fn main() {
@@ -53,6 +53,7 @@ impl Game {
             circle(Vec2::new(0.0, 0.0), 15.0), //mouse_pos + Vec2::new(25.0, 25.0)),
             RGBA8::new(20, 200, 100, 255),
         ));
+
         let stuff = triangle(
             Vec2::new(15.0, 20.0),
             Vec2::new(100.0, 50.0),
@@ -128,10 +129,10 @@ impl State for Game {
 const DISPERSION_MATRIX_SIZE: u8 = 9;
 const DISPERSED: [u8; DISPERSION_MATRIX_SIZE as usize] = [1, 7, 4, 5, 8, 3, 6, 2, 9];
 
-pub fn dither(x: i32, y: i32, main_color: RGBA8, alternative_color: RGBA8, mix: f32) -> RGBA8 {
-    let idx_in_dispersion_matrix = ((x - y * 3).abs() % DISPERSION_MATRIX_SIZE as i32) as usize;
+#[must_use] pub fn dither(x: i32, y: i32, main_color: RGBA8, alternative_color: RGBA8, mix: f32) -> RGBA8 {
+    let idx_in_dispersion_matrix = ((x - y * 3).abs() % i32::from(DISPERSION_MATRIX_SIZE)) as usize;
     let color_threshold =
-        DISPERSED[idx_in_dispersion_matrix] as f32 / DISPERSION_MATRIX_SIZE as f32;
+        f32::from(DISPERSED[idx_in_dispersion_matrix]) / f32::from(DISPERSION_MATRIX_SIZE);
 
     if mix < color_threshold {
         main_color

@@ -12,8 +12,8 @@ impl Vec2 {
         Self { x, y }
     }
 
-    pub fn round(&self) -> Self {
-        Vec2::new(self.x.round(), self.y.round())
+    pub fn round(self) -> Self {
+        Self::new(self.x.round(), self.y.round())
     }
 
     pub fn from_angle(angle: f32) -> Self {
@@ -23,13 +23,13 @@ impl Vec2 {
         }
     }
 
-    pub fn inside(&self, width: u32, height: u32) -> bool {
+    pub fn inside(self, width: u32, height: u32) -> bool {
         self.y > 0.0 && self.x > 0.0 && (self.x as u32) < width && (self.y as u32) < height
     }
 }
 
 impl Mul<f32> for Vec2 {
-    type Output = Vec2;
+    type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
         Self {
@@ -39,10 +39,10 @@ impl Mul<f32> for Vec2 {
     }
 }
 
-impl Add<&Vec2> for Vec2 {
-    type Output = Vec2;
+impl Add<&Self> for Vec2 {
+    type Output = Self;
 
-    fn add(self, rhs: &Vec2) -> Self::Output {
+    fn add(self, rhs: &Self) -> Self::Output {
         Self {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
@@ -50,10 +50,10 @@ impl Add<&Vec2> for Vec2 {
     }
 }
 
-impl Add<Vec2> for Vec2 {
-    type Output = Vec2;
+impl Add<Self> for Vec2 {
+    type Output = Self;
 
-    fn add(self, rhs: Vec2) -> Self::Output {
+    fn add(self, rhs: Self) -> Self::Output {
         Self {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
@@ -64,7 +64,7 @@ impl Add<Vec2> for Vec2 {
 pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
     let dx = to.x - from.x;
     let dy = to.y - from.y;
-    return dx.abs().max(dy.abs());
+    dx.abs().max(dy.abs())
 }
 
 pub fn circle(origin: Vec2, radius: f32) -> Vec<Vec2> {
@@ -84,6 +84,22 @@ pub fn line(from: Vec2, to: Vec2) -> Vec<Vec2> {
             0.0
         } else {
             i as f32 / diagonal_distance
+        };
+        let lerp_x = lerp(from.x, to.x, progress);
+        let lerp_y = lerp(from.y, to.y, progress);
+        points.push(Vec2::new(lerp_x, lerp_y).round());
+    }
+    points
+}
+
+pub fn dotted_line(from: Vec2, to: Vec2, step: f32) -> Vec<Vec2> {
+    let diagonal_distance = diagonal_distance(from, to);
+    let mut points: Vec<Vec2> = Vec::with_capacity(diagonal_distance as usize);
+    for i in 0..(diagonal_distance / step) as usize {
+        let progress = if i == 0 {
+            0.0
+        } else {
+            i as f32 / (diagonal_distance / step)
         };
         let lerp_x = lerp(from.x, to.x, progress);
         let lerp_y = lerp(from.y, to.y, progress);
@@ -112,12 +128,11 @@ pub fn triangle(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
     let mut other = line(p0, p1);
     other.extend(line(p1, p2));
     let mut other = other.iter().peekable();
-    let mut current_y = 0.0;
-    for (point) in long_side.iter() {
-        current_y = point.y.round();
-        while (other
+    for point in &long_side {
+        let current_y = point.y.round();
+        while other
             .peek()
-            .map_or(false, |point| point.y.round() == current_y))
+            .map_or(false, |point| (point.y.round() - current_y).abs() < 0.1)
         {
             other.next();
         }
@@ -155,7 +170,7 @@ struct Bounds {
 
 impl Bounds {
     pub fn wrap(points: &[Vec2]) -> Self {
-        points.iter().fold(Bounds::default(), |mut bounds, point| {
+        points.iter().fold(Self::default(), |mut bounds, point| {
             bounds.wrap_point(*point);
             bounds
         })
@@ -164,14 +179,14 @@ impl Bounds {
     pub fn wrap_point(&mut self, point: Vec2) {
         let Vec2 { x, y } = point;
         if x > self.right {
-            self.right = x
+            self.right = x;
         } else if x < self.left {
-            self.left = x
+            self.left = x;
         }
         if y < self.top {
-            self.top = y
+            self.top = y;
         } else if y > self.bottom {
-            self.bottom = y
+            self.bottom = y;
         }
     }
 }
@@ -229,13 +244,13 @@ impl Size {
         Self { width, height }
     }
 
-    pub fn area(&self) -> u32 {
+    pub fn area(self) -> u32 {
         self.width * self.height
     }
 }
 
 pub fn lerp(start: f32, end: f32, t: f32) -> f32 {
-    return start * (1.0 - t) + end * t;
+    start.mul_add(1.0 - t, end * t)
 }
 
 pub fn min(of: i32, or: i32) -> i32 {
