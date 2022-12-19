@@ -1,5 +1,7 @@
 use std::ops::{Add, Mul};
 
+use crate::geometry::{Line, Triangle};
+
 /// Get either width or height, depending on which is longer.
 pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
     let dx = to.x - from.x;
@@ -12,15 +14,16 @@ pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
     If so, the point will be on the same side of each of the half planes
     defined by vectors p1p2, p2p3, and p3p1.
 */
-pub fn point_is_in_triangle(point: Vec2, p0: Vec2, p1: Vec2, p2: Vec2) -> bool {
-    let side1 = side_of_the_plane(point, p0, p1);
-    let side2 = side_of_the_plane(point, p1, p2);
-    let side3 = side_of_the_plane(point, p2, p0);
+pub fn point_is_in_triangle(point: Vec2, triangle: &Triangle) -> bool {
+    let Triangle { a, b, c } = *triangle;
+    let side1 = side_of_the_plane(point, Line(a, b));
+    let side2 = side_of_the_plane(point, Line(b, c));
+    let side3 = side_of_the_plane(point, Line(c, a));
     side1 && side2 && side3 || !side1 && !side2 && !side3
 }
 
-fn side_of_the_plane(point: Vec2, plane1: Vec2, plane2: Vec2) -> bool {
-    ((point.x - plane2.x) * (plane1.y - plane2.y) - (plane1.x - plane2.x) * (point.y - plane2.y))
+fn side_of_the_plane(point: Vec2, line: Line) -> bool {
+    ((point.x - line.1.x) * (line.0.y - line.1.y) - (line.0.x - line.1.x) * (point.y - line.1.y))
         .is_sign_positive()
 }
 

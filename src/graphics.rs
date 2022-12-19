@@ -1,8 +1,10 @@
 use crate::{
     common::lerp,
-    geometry::Rect,
+    geometry::{Rect, Triangle},
     math::{diagonal_distance, point_is_in_triangle, Vec2},
 };
+
+/// Functions here produce pixels, analytical shapes are in `geometry`
 
 pub fn circle(origin: Vec2, radius: f32) -> Vec<Vec2> {
     let surface = (radius * std::f32::consts::TAU).ceil();
@@ -56,7 +58,7 @@ pub fn triangle(p0: Vec2, p1: Vec2, p2: Vec2) -> Vec<Vec2> {
     let rect_points = Rect::bounding(&[p0, p1, p2])
         .points()
         .into_iter()
-        .filter(|point| point_is_in_triangle(*point, p0, p1, p2))
+        .filter(|point| point_is_in_triangle(*point, &Triangle::new(p0, p1, p2)))
         .collect();
     rect_points
 }

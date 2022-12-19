@@ -1,5 +1,7 @@
 use crate::math::Vec2;
 
+/// Module for analytical forms of shapes
+
 #[derive(Copy, Clone, Debug)]
 pub struct Rect {
     pub origin: Vec2,
@@ -101,5 +103,26 @@ impl Size {
 
     pub fn area(self) -> u32 {
         self.width * self.height
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Line(pub Vec2, pub Vec2);
+
+#[derive(Copy, Clone, Debug)]
+pub struct Triangle {
+    pub a: Vec2,
+    pub b: Vec2,
+    pub c: Vec2,
+}
+
+impl Triangle {
+    pub fn new(p0: Vec2, p1: Vec2, p2: Vec2) -> Self {
+        // TODO: ensure the order of points (clockwise)
+        Self {
+            a: p0,
+            b: p1,
+            c: p2,
+        }
     }
 }

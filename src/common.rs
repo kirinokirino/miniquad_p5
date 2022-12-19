@@ -1,7 +1,3 @@
-use std::default::Default;
-
-use crate::math::Vec2;
-
 pub fn lerp(start: f32, end: f32, t: f32) -> f32 {
     start.mul_add(1.0 - t, end * t)
 }
