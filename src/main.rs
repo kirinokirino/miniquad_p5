@@ -7,18 +7,21 @@
     clippy::cast_possible_wrap,
     clippy::missing_panics_doc
 )]
+use common::constrain;
+use graphics::{circle, triangle};
+use math::Vec2;
 use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
 
 mod cli;
 mod clock;
 mod common;
+mod geometry;
+mod graphics;
+mod math;
 mod ppt;
 mod sprite;
 
 use clock::Clock;
-use common::{
-    circle, constrain, empty_triangle, point_is_in_triangle, triangle, triangle2, Size, Vec2,
-};
 
 use sprite::Sprite;
 
@@ -55,10 +58,12 @@ impl Game {
             RGBA8::new(20, 200, 100, 255),
         ));
 
-        let mut stuff = triangle(
-            Vec2::from_angle(std::f32::consts::TAU / 3.0) * 100.0,
-            Vec2::from_angle((std::f32::consts::TAU / 3.0) * 2.0) * 100.0,
-            Vec2::from_angle((std::f32::consts::TAU / 3.0) * 3.0) * 100.0,
+        let center = Vec2::new((width / 2) as f32, (height / 2) as f32);
+
+        let stuff = triangle(
+            center + Vec2::from_angle(std::f32::consts::TAU / 3.0) * 100.0,
+            center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 2.0) * 100.0,
+            center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 3.0) * 100.0,
         );
         Self {
             clock,
@@ -84,18 +89,6 @@ impl State for Game {
         );
 
         self.sprites[0].origin = self.mouse_pos;
-
-        let (p0, p1, p2) = (
-            Vec2::new(200.0, 10.0),
-            Vec2::new(20.0, 200.0),
-            Vec2::new(350.0, 250.0),
-        );
-
-        self.stuff = triangle2(p0, p1, p2);
-        self.stuff
-            .extend(bleh(Vec2::new(250.0, 200.0), self.clock.now() * 3.0, 4.0));
-        self.stuff
-            .extend(bleh(Vec2::new(200.0, 150.0), self.clock.now() * 0.2, 9.0));
 
         self.clock.sleep();
     }
@@ -125,13 +118,6 @@ impl State for Game {
     }
 }
 
-pub fn bleh(p: Vec2, t: f32, b: f32) -> Vec<Vec2> {
-    triangle(
-        p + Vec2::from_angle((t / 3.0) % b / 3.0) * 100.0,
-        p + Vec2::from_angle(((t / 2.0 + 1.5) % b / 3.0) * 2.0) * 100.0,
-        p + Vec2::from_angle(((t / 2.5 + 1.0) % b / 3.0) * 3.0) * 100.0,
-    )
-}
 const DISPERSION_MATRIX_SIZE: u8 = 9;
 const DISPERSED: [u8; DISPERSION_MATRIX_SIZE as usize] = [1, 7, 4, 5, 8, 3, 6, 2, 9];
 

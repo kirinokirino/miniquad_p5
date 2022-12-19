@@ -4,7 +4,9 @@ use std::path::Path;
 
 use simple_pixels::rgb::RGBA8;
 
-use crate::{Size, Sprite, Vec2};
+use crate::geometry::Size;
+use crate::math::Vec2;
+use crate::sprite::Sprite;
 
 /// Basic image saving/loading with ppt format.
 
