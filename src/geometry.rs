@@ -25,7 +25,6 @@ impl Rect {
             left,
             right,
         } = Bounds::wrap(points);
-
         let origin = Vec2::new(left, top).round();
         let size = Size::new(
             (right.round() - left.round()) as u32,
@@ -72,6 +71,7 @@ impl Rect {
     }
 }
 
+#[derive(Debug)]
 struct Bounds {
     top: f32,
     bottom: f32,
@@ -91,12 +91,14 @@ impl Bounds {
         let Vec2 { x, y } = point;
         if x > self.right {
             self.right = x;
-        } else if x < self.left {
+        }
+        if x < self.left {
             self.left = x;
         }
         if y < self.top {
             self.top = y;
-        } else if y > self.bottom {
+        }
+        if y > self.bottom {
             self.bottom = y;
         }
     }
@@ -138,6 +140,22 @@ pub struct Line {
 impl Line {
     pub fn new(from: Vec2, to: Vec2) -> Self {
         Self { a: from, b: to }
+    }
+
+    /// 0 -> point on start, 1 -> point on end, (0, 1) -> point between start and end
+    /// doesn't work with negative
+    pub fn todo_name(&self, point: Vec2) -> f32 {
+        let point = self.project(point);
+        let from_start = (self.a - point).length_squared();
+        let full_path = (self.a - self.b).length_squared();
+        (from_start / full_path).sqrt()
+    }
+
+    pub fn project(&self, point: Vec2) -> Vec2 {
+        let offset = self.a;
+        let point = offset - point;
+        let plane = offset - self.b;
+        offset + (plane * point.dot(plane) * plane.length_squared().recip())
     }
 
     pub fn solid(&self) -> Vec<Vec2> {
@@ -191,9 +209,7 @@ impl Triangle {
             c: p2,
         }
     }
-}
 
-impl Triangle {
     pub fn solid_color(&self) -> Vec<Vec2> {
         let Triangle { a, b, c } = *self;
         let rect_points = Rect::bounding(&[a, b, c])

@@ -7,8 +7,8 @@
     clippy::cast_possible_wrap,
     clippy::missing_panics_doc
 )]
-use common::constrain;
-use geometry::Triangle;
+use common::{constrain, lerp_u8};
+use geometry::{Line, Triangle};
 use graphics::circle;
 use math::Vec2;
 use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
@@ -54,17 +54,17 @@ impl Game {
         let clock = Clock::new();
         let mouse_pos = Vec2::new(0.0, 0.0);
         let mut sprites: Vec<Sprite> = Vec::new();
-        sprites.push(Sprite::from_vec2(
-            circle(Vec2::new(0.0, 0.0), 15.0), //mouse_pos + Vec2::new(25.0, 25.0)),
-            RGBA8::new(20, 200, 100, 255),
-        ));
+        // sprites.push(Sprite::from_vec2(
+        //     circle(Vec2::new(0.0, 0.0), 15.0), //mouse_pos + Vec2::new(25.0, 25.0)),
+        //     RGBA8::new(20, 200, 100, 255),
+        // ));
 
         let center = Vec2::new((width / 2) as f32, (height / 2) as f32);
 
         let triangle = Triangle::new(
-            center + Vec2::from_angle(std::f32::consts::TAU / 3.0) * 100.0,
-            center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 2.0) * 100.0,
-            center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 3.0) * 100.0,
+            center + Vec2::from_angle(0.0_f32.to_radians()) * 100.0,
+            center + Vec2::from_angle(120.0_f32.to_radians()) * 100.0,
+            center + Vec2::from_angle(240.0_f32.to_radians()) * 100.0,
         );
         Self {
             clock,
@@ -89,7 +89,7 @@ impl State for Game {
             constrain(mouse.1, 0.0, self.height as f32),
         );
 
-        self.sprites[0].origin = self.mouse_pos;
+        //self.sprites[0].origin = self.mouse_pos;
 
         self.clock.sleep();
     }
@@ -99,24 +99,81 @@ impl State for Game {
         for sprite in &self.sprites {
             sprite.draw(ctx);
         }
-        for point in self
+        let points: Vec<Vec2> = self
             .triangle
-            .empty()
-            .iter()
+            .solid_color()
+            .into_iter()
             .filter(|p| p.inside(self.width as i32, self.height as i32))
-        {
-            ctx.draw_pixel(
-                point.x as i32,
-                point.y as i32,
-                dither(
-                    point.x as i32,
-                    point.y as i32,
-                    RGBA8::new(0, 100, 255, 50),
-                    RGBA8::new(0x6a, 0xc0, 0xbd, 50),
-                    (self.clock.now() / 10.0).sin(),
-                ),
-            );
+            .collect();
+
+        let shading = Shading::new(
+            Vec2::new(0.0, 0.0),
+            Vec2::new(self.width as f32, self.height as f32),
+            RGBA8::new(255, 0, 0, 255),
+            RGBA8::new(0, 0, 255, 255),
+        );
+
+        shading.draw_shaded(ctx, &points);
+        //shading.draw_dithered(ctx, &points);
+    }
+}
+
+struct Shading {
+    line: Line,
+    start_color: RGBA8,
+    end_color: RGBA8,
+}
+
+impl Shading {
+    pub fn new(start_pos: Vec2, end_pos: Vec2, start_color: RGBA8, end_color: RGBA8) -> Self {
+        let line = Line::new(start_pos, end_pos);
+        Self {
+            line,
+            start_color,
+            end_color,
         }
+    }
+
+    pub fn draw_dithered(&self, ctx: &mut Context, points: &[Vec2]) {
+        for point in points {
+            let (x, y) = (point.x as i32, point.y as i32);
+            let mix = self.line.todo_name(*point);
+            ctx.draw_pixel(x, y, dither(x, y, self.start_color, self.end_color, mix))
+        }
+    }
+
+    pub fn draw_shaded(&self, ctx: &mut Context, points: &[Vec2]) {
+        let RGBA8 { r, g, b, a } = self.start_color;
+        let (sr, sg, sb) = (r, g, b);
+        let RGBA8 { r, g, b, a } = self.end_color;
+        for point in points {
+            let (x, y) = (point.x as i32, point.y as i32);
+            let mix = self.line.todo_name(*point);
+            ctx.draw_pixel(
+                x,
+                y,
+                RGBA8::new(
+                    lerp_u8(sr, r, mix),
+                    lerp_u8(sg, g, mix),
+                    lerp_u8(sb, b, mix),
+                    255,
+                ),
+            )
+            //ctx.draw_pixel(x, y, dither(x, y, self.start_color, self.end_color, mix))
+        }
+        // {
+        //     ctx.draw_pixel(
+        //         point.x as i32,
+        //         point.y as i32,
+        //         dither(
+        //             point.x as i32,
+        //             point.y as i32,
+        //             RGBA8::new(0, 100, 255, 50),
+        //             RGBA8::new(0x6a, 0xc0, 0xbd, 50),
+        //             (self.clock.now() / 10.0).sin(),
+        //         ),
+        //     );
+        // }
     }
 }
 

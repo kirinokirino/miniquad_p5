@@ -43,10 +43,8 @@ impl Vec2 {
     }
 
     pub fn from_angle(angle: f32) -> Self {
-        Self {
-            x: angle.sin(),
-            y: angle.cos(),
-        }
+        let (sin, cos) = angle.sin_cos();
+        Self { x: cos, y: sin }
     }
 
     pub fn inside(self, width: i32, height: i32) -> bool {
