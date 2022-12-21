@@ -8,7 +8,8 @@
     clippy::missing_panics_doc
 )]
 use common::constrain;
-use graphics::{circle, triangle};
+use geometry::Triangle;
+use graphics::circle;
 use math::Vec2;
 use simple_pixels::{rgb::RGBA8, start, Config, Context, KeyCode, State};
 
@@ -45,7 +46,7 @@ struct Game {
     width: u32,
     height: u32,
     sprites: Vec<Sprite>,
-    stuff: Vec<Vec2>,
+    triangle: Triangle,
 }
 
 impl Game {
@@ -60,7 +61,7 @@ impl Game {
 
         let center = Vec2::new((width / 2) as f32, (height / 2) as f32);
 
-        let stuff = triangle(
+        let triangle = Triangle::new(
             center + Vec2::from_angle(std::f32::consts::TAU / 3.0) * 100.0,
             center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 2.0) * 100.0,
             center + Vec2::from_angle((std::f32::consts::TAU / 3.0) * 3.0) * 100.0,
@@ -71,7 +72,7 @@ impl Game {
             width,
             height,
             sprites,
-            stuff,
+            triangle,
         }
     }
 }
@@ -99,7 +100,8 @@ impl State for Game {
             sprite.draw(ctx);
         }
         for point in self
-            .stuff
+            .triangle
+            .empty()
             .iter()
             .filter(|p| p.inside(self.width as i32, self.height as i32))
         {

@@ -1,4 +1,5 @@
-use crate::math::Vec2;
+use crate::graphics::line;
+use crate::math::{point_is_in_triangle, Vec2};
 
 /// Module for analytical forms of shapes
 
@@ -109,7 +110,7 @@ impl Size {
 #[derive(Copy, Clone, Debug)]
 pub struct Line(pub Vec2, pub Vec2);
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Triangle {
     pub a: Vec2,
     pub b: Vec2,
@@ -124,5 +125,25 @@ impl Triangle {
             b: p1,
             c: p2,
         }
+    }
+}
+
+impl Triangle {
+    pub fn solid_color(&self) -> Vec<Vec2> {
+        let Triangle { a, b, c } = *self;
+        let rect_points = Rect::bounding(&[a, b, c])
+            .points()
+            .into_iter()
+            .filter(|point| point_is_in_triangle(*point, self))
+            .collect();
+        rect_points
+    }
+
+    pub fn empty(&self) -> Vec<Vec2> {
+        let Triangle { a, b, c } = *self;
+        let mut triangle = line(a, b);
+        triangle.extend(line(b, c));
+        triangle.extend(line(a, c));
+        triangle
     }
 }
