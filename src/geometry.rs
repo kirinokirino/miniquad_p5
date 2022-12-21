@@ -34,7 +34,19 @@ impl Rect {
         Self { origin, size }
     }
 
-    pub fn points(&self) -> Vec<Vec2> {
+    /// top_left, top_right, bottom_right, bottom_left
+    pub fn corners(&self) -> (Vec2, Vec2, Vec2, Vec2) {
+        let bottom_right = self.bottom_right();
+        let top_right = Vec2::new(bottom_right.x, self.origin.y);
+        let bottom_left = Vec2::new(self.origin.x, bottom_right.y);
+        (self.origin, top_right, bottom_right, bottom_left)
+    }
+
+    pub fn bottom_right(&self) -> Vec2 {
+        self.origin + Vec2::new(self.size.width as f32, self.size.height as f32)
+    }
+
+    pub fn solid_color(&self) -> Vec<Vec2> {
         let (start_x, start_y, end_x, end_y) = (
             self.origin.x.round() as i32,
             self.origin.y.round() as i32,
@@ -48,6 +60,15 @@ impl Rect {
             }
         }
         points
+    }
+
+    pub fn empty(&self) -> Vec<Vec2> {
+        let (a, b, c, d) = self.corners();
+        let mut rectangle = line(a, b);
+        rectangle.extend(line(b, c));
+        rectangle.extend(line(c, d));
+        rectangle.extend(line(d, a));
+        rectangle
     }
 }
 
@@ -176,7 +197,7 @@ impl Triangle {
     pub fn solid_color(&self) -> Vec<Vec2> {
         let Triangle { a, b, c } = *self;
         let rect_points = Rect::bounding(&[a, b, c])
-            .points()
+            .solid_color()
             .into_iter()
             .filter(|point| point_is_in_triangle(*point, self))
             .collect();
