@@ -54,11 +54,23 @@ impl Vec2 {
     }
 
     pub fn len(self) -> f32 {
-        (self.x + self.y).sqrt()
+        (self.dot(self)).sqrt()
     }
 
-    pub fn distance(self, other: &Vec2) -> f32 {
-        (*other - self).len()
+    pub fn length_squared(self) -> f32 {
+        self.dot(self)
+    }
+
+    pub fn distance(self, other: Vec2) -> f32 {
+        (self - other).len()
+    }
+
+    pub fn distance_squared(self, other: Vec2) -> f32 {
+        (self - other).length_squared()
+    }
+
+    pub fn dot(self, other: Vec2) -> f32 {
+        (self.x * other.x) + (self.y * other.y)
     }
 }
 
