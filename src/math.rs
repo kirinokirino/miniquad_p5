@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 
 use crate::geometry::{Line, Triangle};
 
@@ -52,6 +52,14 @@ impl Vec2 {
     pub fn inside(self, width: i32, height: i32) -> bool {
         self.y > 0.0 && self.x > 0.0 && (self.x as i32) < width && (self.y as i32) < height
     }
+
+    pub fn len(self) -> f32 {
+        (self.x + self.y).sqrt()
+    }
+
+    pub fn distance(self, other: &Vec2) -> f32 {
+        (*other - self).len()
+    }
 }
 
 impl Mul<f32> for Vec2 {
@@ -61,6 +69,28 @@ impl Mul<f32> for Vec2 {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
+        }
+    }
+}
+
+impl Sub<&Self> for Vec2 {
+    type Output = Self;
+
+    fn sub(self, rhs: &Self) -> Self::Output {
+        Self {
+            x: rhs.x - self.x,
+            y: rhs.y - self.y,
+        }
+    }
+}
+
+impl Sub<Self> for Vec2 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: rhs.x - self.x,
+            y: rhs.y - self.y,
         }
     }
 }
