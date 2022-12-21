@@ -16,15 +16,15 @@ pub fn diagonal_distance(from: Vec2, to: Vec2) -> f32 {
 */
 pub fn point_is_in_triangle(point: Vec2, triangle: &Triangle) -> bool {
     let Triangle { a, b, c } = *triangle;
-    let side1 = side_of_the_plane(point, Line(a, b));
-    let side2 = side_of_the_plane(point, Line(b, c));
-    let side3 = side_of_the_plane(point, Line(c, a));
+    let side1 = side_of_the_plane(point, Line::new(a, b));
+    let side2 = side_of_the_plane(point, Line::new(b, c));
+    let side3 = side_of_the_plane(point, Line::new(c, a));
     side1 && side2 && side3 || !side1 && !side2 && !side3
 }
 
 fn side_of_the_plane(point: Vec2, line: Line) -> bool {
-    ((point.x - line.1.x) * (line.0.y - line.1.y) - (line.0.x - line.1.x) * (point.y - line.1.y))
-        .is_sign_positive()
+    let Line { a, b } = line;
+    ((point.x - b.x) * (a.y - b.y) - (a.x - b.x) * (point.y - b.y)).is_sign_positive()
 }
 
 #[derive(Debug, Copy, Clone)]

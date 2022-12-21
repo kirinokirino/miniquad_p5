@@ -1,5 +1,6 @@
+use crate::common::lerp;
 use crate::graphics::line;
-use crate::math::{point_is_in_triangle, Vec2};
+use crate::math::{diagonal_distance, point_is_in_triangle, Vec2};
 
 /// Module for analytical forms of shapes
 
@@ -108,7 +109,50 @@ impl Size {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Line(pub Vec2, pub Vec2);
+pub struct Line {
+    pub a: Vec2,
+    pub b: Vec2,
+}
+
+impl Line {
+    pub fn new(from: Vec2, to: Vec2) -> Self {
+        Self { a: from, b: to }
+    }
+
+    pub fn solid(&self) -> Vec<Vec2> {
+        let Line { a, b } = *self;
+        let diagonal_distance = diagonal_distance(a, b);
+        let mut points: Vec<Vec2> = Vec::with_capacity(diagonal_distance as usize);
+        for i in 0..diagonal_distance as usize {
+            let progress = if i == 0 {
+                0.0
+            } else {
+                i as f32 / diagonal_distance
+            };
+            let lerp_x = lerp(a.x, b.x, progress);
+            let lerp_y = lerp(a.y, b.y, progress);
+            points.push(Vec2::new(lerp_x, lerp_y).round());
+        }
+        points
+    }
+
+    pub fn dotted(&self, step: f32) -> Vec<Vec2> {
+        let Line { a, b } = *self;
+        let diagonal_distance = diagonal_distance(a, b);
+        let mut points: Vec<Vec2> = Vec::with_capacity(diagonal_distance as usize);
+        for i in 0..(diagonal_distance / step) as usize {
+            let progress = if i == 0 {
+                0.0
+            } else {
+                i as f32 / (diagonal_distance / step)
+            };
+            let lerp_x = lerp(a.x, b.x, progress);
+            let lerp_y = lerp(a.y, b.y, progress);
+            points.push(Vec2::new(lerp_x, lerp_y).round());
+        }
+        points
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Triangle {
