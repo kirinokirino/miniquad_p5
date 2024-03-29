@@ -47,6 +47,7 @@ struct Game {
     height: u32,
     sprites: Vec<Sprite>,
     triangle: Triangle,
+    angle: f32,
 }
 
 impl Game {
@@ -59,12 +60,10 @@ impl Game {
         //     RGBA8::new(20, 200, 100, 255),
         // ));
 
-        let center = Vec2::new((width / 2) as f32, (height / 2) as f32);
-
         let triangle = Triangle::new(
-            center + Vec2::from_angle(0.0_f32.to_radians()) * 100.0,
-            center + Vec2::from_angle(120.0_f32.to_radians()) * 100.0,
-            center + Vec2::from_angle(240.0_f32.to_radians()) * 100.0,
+            Vec2::from_angle(0.0_f32.to_radians()) * 100.0,
+            Vec2::from_angle(120.0_f32.to_radians()) * 100.0,
+            Vec2::from_angle(240.0_f32.to_radians()) * 100.0,
         );
         Self {
             clock,
@@ -73,6 +72,7 @@ impl Game {
             height,
             sprites,
             triangle,
+            angle: 0.0,
         }
     }
 }
@@ -89,6 +89,8 @@ impl State for Game {
             constrain(mouse.1, 0.0, self.height as f32),
         );
 
+        self.angle += 0.04;
+
         //self.sprites[0].origin = self.mouse_pos;
 
         self.clock.sleep();
@@ -99,8 +101,15 @@ impl State for Game {
         for sprite in &self.sprites {
             sprite.draw(ctx);
         }
-        let points: Vec<Vec2> = self
-            .triangle
+
+        let center = Vec2::new((self.width / 2) as f32, (self.height / 2) as f32);
+        let triangle = Triangle::new(
+            center + self.triangle.a.rotate(self.angle),
+            center + self.triangle.b.rotate(self.angle),
+            center + self.triangle.c.rotate(self.angle),
+        );
+
+        let points: Vec<Vec2> = triangle
             .solid_color()
             .into_iter()
             .filter(|p| p.inside(self.width as i32, self.height as i32))

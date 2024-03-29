@@ -70,6 +70,13 @@ impl Vec2 {
     pub fn dot(self, other: Vec2) -> f32 {
         (self.x * other.x) + (self.y * other.y)
     }
+
+    pub fn rotate(self, angle: f32) -> Self {
+        Self {
+            x: self.x * angle.cos() - self.y * angle.sin(),
+            y: self.x * angle.sin() + self.y * angle.cos(),
+        }
+    }
 }
 
 impl Mul<f32> for Vec2 {
